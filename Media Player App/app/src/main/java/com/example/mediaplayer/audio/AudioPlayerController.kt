@@ -87,7 +87,7 @@ class AudioPlayerController(
             player.setOnCompletionListener {
                 if (released) return@setOnCompletionListener
                 isPlaying = false
-                status = "Ready"
+                status = "Completed"
                 emit()
             }
             player.setOnErrorListener { _, _, _ ->
@@ -127,6 +127,10 @@ class AudioPlayerController(
         }
         val player = mediaPlayer ?: return
         try {
+            if (status == "Completed") {
+                @Suppress("DEPRECATION")
+                player.seekTo(0)
+            }
             player.start()
             isPlaying = true
             status = "Playing"

@@ -2,6 +2,7 @@ package com.example.mediaplayer.video
 
 import android.content.Context
 import android.net.Uri
+import android.widget.MediaController
 import android.widget.Toast
 import android.widget.VideoView
 
@@ -61,6 +62,9 @@ class VideoPlaybackController(
 
     fun bindView(view: VideoView) {
         videoView = view
+        val mediaController = MediaController(context)
+        view.setMediaController(mediaController)
+        mediaController.setAnchorView(view)
         view.setOnErrorListener { _, _, _ ->
             toast("Error loading video")
             isVideoPlaying = false
@@ -76,7 +80,7 @@ class VideoPlaybackController(
         }
         view.setOnCompletionListener {
             isVideoPlaying = false
-            videoStatus = if (videoUri != null) "Ready" else "No file selected"
+            videoStatus = if (videoUri != null) "Completed" else "No file selected"
             emit()
         }
         videoUri?.let { uri ->
@@ -161,6 +165,10 @@ class VideoPlaybackController(
             return
         }
         try {
+            if (videoStatus == "Completed") {
+                @Suppress("DEPRECATION")
+                vv.seekTo(0)
+            }
             vv.start()
             isVideoPlaying = true
             videoStatus = "Playing"

@@ -6,19 +6,32 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AudioFile
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -27,9 +40,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -45,22 +60,24 @@ import com.example.mediaplayer.video.VideoUiState
 
 private data class PlaybackButton(
     val label: String,
+    val icon: ImageVector?,
     val onClick: () -> Unit,
     val enabled: Boolean
 )
 
 @Composable
-private fun StatusLine(status: String) {
+private fun SectionStatusLine(prefix: String, status: String) {
     val color = when (status) {
         "Playing" -> Color(0xFF2E7D32)
         "Paused" -> Color(0xFFF57C00)
         "Stopped" -> Color(0xFFC62828)
+        "Completed" -> Color(0xFF1565C0)
         else -> Color(0xFF757575)
     }
     Text(
-        text = "Status: $status",
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Medium,
+        text = "$prefix: $status",
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
         color = color
     )
 }
@@ -107,6 +124,11 @@ fun MediaPlayerScreen(
                 onStop = onAudioStop,
                 onRestart = onAudioRestart
             )
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 4.dp),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
             VideoPlayerCard(
                 videoUiState = videoUiState,
                 videoController = videoController,
@@ -151,27 +173,26 @@ private fun AudioPlayerCard(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            if (!audioUiState.audioDisplayName.isNullOrBlank()) {
-                Text(
-                    text = "File: ${audioUiState.audioDisplayName}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = audioUiState.audioDisplayName?.let { "File: $it" } ?: "File: —",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             ControlButtonRow(
                 buttons = listOf(
-                    PlaybackButton("Open Audio File", onOpenAudioFile, enabled = true),
-                    PlaybackButton("Play", onPlay, enabled = playEnabled),
-                    PlaybackButton("Pause", onPause, enabled = pauseEnabled)
+                    PlaybackButton("Open file", Icons.Filled.AudioFile, onOpenAudioFile, true),
+                    PlaybackButton("Play", Icons.Filled.PlayArrow, onPlay, playEnabled),
+                    PlaybackButton("Pause", Icons.Filled.Pause, onPause, pauseEnabled)
                 )
             )
             ControlButtonRow(
                 buttons = listOf(
-                    PlaybackButton("Stop", onStop, enabled = stopEnabled),
-                    PlaybackButton("Restart", onRestart, enabled = restartEnabled)
+                    PlaybackButton("Stop", Icons.Filled.Stop, onStop, stopEnabled),
+                    PlaybackButton("Restart", Icons.Filled.Replay, onRestart, restartEnabled)
                 )
             )
-            StatusLine(status = audioUiState.audioStatus)
+            SectionStatusLine(prefix = "Audio", status = audioUiState.audioStatus)
         }
     }
 }
@@ -218,24 +239,27 @@ private fun VideoPlayerCard(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
-            if (videoUiState.videoUrl.isNotBlank()) {
-                Text(
-                    text = "URL: ${videoUiState.videoUrlDisplay}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = if (videoUiState.videoUrl.isNotBlank()) {
+                    "URL: ${videoUiState.videoUrlDisplay}"
+                } else {
+                    "URL: —"
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             ControlButtonRow(
                 buttons = listOf(
-                    PlaybackButton("Open URL", onOpenVideoUrl, enabled = true),
-                    PlaybackButton("Play", onVideoPlay, enabled = playEnabled),
-                    PlaybackButton("Pause", onVideoPause, enabled = pauseEnabled)
+                    PlaybackButton("Open URL", Icons.Filled.Link, onOpenVideoUrl, true),
+                    PlaybackButton("Play", Icons.Filled.PlayArrow, onVideoPlay, playEnabled),
+                    PlaybackButton("Pause", Icons.Filled.Pause, onVideoPause, pauseEnabled)
                 )
             )
             ControlButtonRow(
                 buttons = listOf(
-                    PlaybackButton("Stop", onVideoStop, enabled = stopEnabled),
-                    PlaybackButton("Restart", onVideoRestart, enabled = restartEnabled)
+                    PlaybackButton("Stop", Icons.Filled.Stop, onVideoStop, stopEnabled),
+                    PlaybackButton("Restart", Icons.Filled.Replay, onVideoRestart, restartEnabled)
                 )
             )
             Box(
@@ -267,7 +291,7 @@ private fun VideoPlayerCard(
                     }
                 )
             }
-            StatusLine(status = videoUiState.videoStatus)
+            SectionStatusLine(prefix = "Video", status = videoUiState.videoStatus)
         }
     }
 }
@@ -278,14 +302,17 @@ private fun ControlButtonRow(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         buttons.forEach { button ->
             Button(
                 onClick = button.onClick,
                 enabled = button.enabled,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 48.dp),
+                shape = RoundedCornerShape(11.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -293,12 +320,26 @@ private fun ControlButtonRow(
                     disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 )
             ) {
-                Text(
-                    text = button.label,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    lineHeight = 17.sp
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    button.icon?.let { vector ->
+                        Icon(
+                            imageVector = vector,
+                            contentDescription = button.label,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                    }
+                    Text(
+                        text = button.label,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        lineHeight = 17.sp
+                    )
+                }
             }
         }
     }

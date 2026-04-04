@@ -1,8 +1,6 @@
 package com.example.mediaplayer.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,20 +19,21 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.VideoView
 import com.example.mediaplayer.audio.AudioUiState
 import com.example.mediaplayer.ui.theme.MediaPlayerTheme
+import com.example.mediaplayer.video.VideoPlaybackController
+import com.example.mediaplayer.video.VideoUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,7 +122,11 @@ private fun AudioPlayerCard(
 
 @Composable
 private fun VideoPlayerCard() {
-    var videoUrl by remember { mutableStateOf("") }
+    val videoState = remember { mutableStateOf(VideoUiState()) }
+    val videoController = remember {
+        VideoPlaybackController { videoState.value = it }
+    }
+    val videoUi by videoState
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -142,36 +145,41 @@ private fun VideoPlayerCard() {
                 fontWeight = FontWeight.Bold
             )
             OutlinedTextField(
-                value = videoUrl,
-                onValueChange = { videoUrl = it },
+                value = videoUi.videoUrl,
+                onValueChange = videoController::onUrlChange,
                 label = { Text("Enter Video URL") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
             ControlButtonRow(
                 buttons = listOf(
-                    "Open URL" to {},
-                    "Play" to {},
-                    "Pause" to {}
+                    "Open URL" to videoController::openUrl,
+                    "Play" to videoController::play,
+                    "Pause" to videoController::pause
                 )
             )
             ControlButtonRow(
                 buttons = listOf(
-                    "Stop" to {},
-                    "Restart" to {}
+                    "Stop" to videoController::stop,
+                    "Restart" to videoController::restart
                 )
             )
-            Box(
+            AndroidView(
+                factory = { context ->
+                    VideoView(context).also { videoView ->
+                        videoController.bindView(videoView)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Video Player Area")
-            }
+                    .height(200.dp),
+                onRelease = { videoView ->
+                    videoView.stopPlayback()
+                    videoController.unbindView()
+                }
+            )
             Text(
-                text = "Status: Idle",
+                text = "Status: ${videoUi.videoStatus}",
                 fontSize = 14.sp
             )
         }

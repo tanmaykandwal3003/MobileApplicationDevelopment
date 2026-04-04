@@ -2,7 +2,6 @@ package com.example.mediaplayer.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -21,9 +21,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,11 +33,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mediaplayer.audio.AudioUiState
 import com.example.mediaplayer.ui.theme.MediaPlayerTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MediaPlayerScreen() {
+fun MediaPlayerScreen(
+    audioUiState: AudioUiState = AudioUiState(),
+    onOpenAudioFile: () -> Unit = {},
+    onAudioPlay: () -> Unit = {},
+    onAudioPause: () -> Unit = {},
+    onAudioStop: () -> Unit = {},
+    onAudioRestart: () -> Unit = {}
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -54,14 +62,28 @@ fun MediaPlayerScreen() {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            AudioPlayerCard()
+            AudioPlayerCard(
+                audioUiState = audioUiState,
+                onOpenAudioFile = onOpenAudioFile,
+                onPlay = onAudioPlay,
+                onPause = onAudioPause,
+                onStop = onAudioStop,
+                onRestart = onAudioRestart
+            )
             VideoPlayerCard()
         }
     }
 }
 
 @Composable
-private fun AudioPlayerCard() {
+private fun AudioPlayerCard(
+    audioUiState: AudioUiState,
+    onOpenAudioFile: () -> Unit,
+    onPlay: () -> Unit,
+    onPause: () -> Unit,
+    onStop: () -> Unit,
+    onRestart: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -78,10 +100,21 @@ private fun AudioPlayerCard() {
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            ControlButtonRow(labels = listOf("Open Audio File", "Play", "Pause"))
-            ControlButtonRow(labels = listOf("Stop", "Restart"))
+            ControlButtonRow(
+                buttons = listOf(
+                    "Open Audio File" to onOpenAudioFile,
+                    "Play" to onPlay,
+                    "Pause" to onPause
+                )
+            )
+            ControlButtonRow(
+                buttons = listOf(
+                    "Stop" to onStop,
+                    "Restart" to onRestart
+                )
+            )
             Text(
-                text = "Status: Idle",
+                text = "Status: ${audioUiState.status}",
                 fontSize = 14.sp
             )
         }
@@ -115,8 +148,19 @@ private fun VideoPlayerCard() {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
-            ControlButtonRow(labels = listOf("Open URL", "Play", "Pause"))
-            ControlButtonRow(labels = listOf("Stop", "Restart"))
+            ControlButtonRow(
+                buttons = listOf(
+                    "Open URL" to {},
+                    "Play" to {},
+                    "Pause" to {}
+                )
+            )
+            ControlButtonRow(
+                buttons = listOf(
+                    "Stop" to {},
+                    "Restart" to {}
+                )
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -135,14 +179,16 @@ private fun VideoPlayerCard() {
 }
 
 @Composable
-private fun ControlButtonRow(labels: List<String>) {
+private fun ControlButtonRow(
+    buttons: List<Pair<String, () -> Unit>>
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        labels.forEach { label ->
+        buttons.forEach { (label, onClick) ->
             Button(
-                onClick = { },
+                onClick = onClick,
                 modifier = Modifier.weight(1f)
             ) {
                 Text(

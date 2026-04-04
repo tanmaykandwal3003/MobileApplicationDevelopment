@@ -4,6 +4,8 @@ import android.net.Uri
 
 data class AudioUiState(
     val selectedAudioUri: Uri? = null,
-    val isPlaying: Boolean = false,
-    val status: String = "No file selected"
+    val audioStatus: String = "No file selected",
+    val isAudioPlaying: Boolean = false,
+    val isAudioLoaded: Boolean = false,
+    val isAudioInitialized: Boolean = false
 )

@@ -11,7 +11,9 @@ class VideoPlaybackController(
     private var videoView: VideoView? = null
     private var videoUrl: String = ""
     private var videoUri: Uri? = null
-    private var videoStatus: String = "No URL entered"
+    private var videoStatus: String = "No file selected"
+    private var isVideoPlaying: Boolean = false
+    private var isVideoLoaded: Boolean = false
 
     init {
         emit()
@@ -22,7 +24,10 @@ class VideoPlaybackController(
             VideoUiState(
                 videoUrl = videoUrl,
                 videoUri = videoUri,
-                videoStatus = videoStatus
+                videoStatus = videoStatus,
+                isVideoPlaying = isVideoPlaying,
+                isVideoLoaded = isVideoLoaded,
+                isVideoBound = videoView != null
             )
         )
     }
@@ -30,12 +35,19 @@ class VideoPlaybackController(
     fun bindView(view: VideoView) {
         videoView = view
         view.setOnErrorListener { _, _, _ ->
+            isVideoPlaying = false
+            isVideoLoaded = false
             videoStatus = "Stopped"
             emit()
             true
         }
         view.setOnCompletionListener {
-            videoStatus = "Stopped"
+            isVideoPlaying = false
+            if (videoUri != null) {
+                videoStatus = "Ready"
+            } else {
+                videoStatus = "No file selected"
+            }
             emit()
         }
         videoUri?.let { uri ->
@@ -44,8 +56,14 @@ class VideoPlaybackController(
     }
 
     fun unbindView() {
-        videoView?.stopPlayback()
+        try {
+            videoView?.stopPlayback()
+        } catch (_: Exception) {
+            // View may already be torn down
+        }
         videoView = null
+        isVideoPlaying = false
+        emit()
     }
 
     fun onUrlChange(text: String) {
@@ -56,7 +74,7 @@ class VideoPlaybackController(
     fun openUrl() {
         val trimmed = videoUrl.trim()
         if (trimmed.isEmpty()) {
-            videoStatus = "No URL entered"
+            videoStatus = "No file selected"
             emit()
             return
         }
@@ -78,23 +96,28 @@ class VideoPlaybackController(
             return
         }
         videoUri = uri
+        isVideoLoaded = false
+        isVideoPlaying = false
+        videoStatus = "Stopped"
+        emit()
         val vv = videoView
         if (vv != null) {
             applyVideoUri(vv, uri)
-        } else {
-            videoStatus = "Stopped"
-            emit()
         }
     }
 
     private fun applyVideoUri(vv: VideoView, uri: Uri) {
         try {
             vv.setOnPreparedListener {
-                videoStatus = "Video loaded"
+                isVideoLoaded = true
+                isVideoPlaying = false
+                videoStatus = "Ready"
                 emit()
             }
             vv.setVideoURI(uri)
         } catch (_: Exception) {
+            isVideoLoaded = false
+            isVideoPlaying = false
             videoStatus = "Stopped"
             emit()
         }
@@ -102,56 +125,67 @@ class VideoPlaybackController(
 
     fun play() {
         if (videoUri == null) {
-            videoStatus = "No URL entered"
+            videoStatus = "No file selected"
+            emit()
+            return
+        }
+        if (!isVideoLoaded) {
+            videoStatus = "No file selected"
             emit()
             return
         }
         val vv = videoView ?: run {
-            videoStatus = "Stopped"
+            videoStatus = "No file selected"
             emit()
             return
         }
         try {
             vv.start()
+            isVideoPlaying = true
             videoStatus = "Playing"
             emit()
         } catch (_: Exception) {
+            isVideoPlaying = false
             videoStatus = "Stopped"
             emit()
         }
     }
 
     fun pause() {
+        if (!isVideoPlaying) return
         val vv = videoView ?: return
         try {
             vv.pause()
+            isVideoPlaying = false
             videoStatus = "Paused"
             emit()
         } catch (_: Exception) {
+            isVideoPlaying = false
             videoStatus = "Stopped"
             emit()
         }
     }
 
     fun stop() {
-        val uri = videoUri ?: run {
-            videoStatus = "No URL entered"
-            emit()
-            return
-        }
-        val vv = videoView ?: run {
-            videoStatus = "Stopped"
-            emit()
-            return
-        }
+        val uri = videoUri ?: return
+        val vv = videoView ?: return
         try {
             vv.stopPlayback()
+        } catch (_: Exception) {
+            return
+        }
+        isVideoPlaying = false
+        try {
             vv.setOnPreparedListener {
+                isVideoLoaded = true
+                isVideoPlaying = false
                 videoStatus = "Stopped"
                 emit()
             }
             vv.setVideoURI(uri)
         } catch (_: Exception) {
+            isVideoLoaded = false
+            isVideoPlaying = false
             videoStatus = "Stopped"
             emit()
         }
@@ -159,12 +193,17 @@ class VideoPlaybackController(
 
     fun restart() {
         if (videoUri == null) {
-            videoStatus = "No URL entered"
+            videoStatus = "No file selected"
+            emit()
+            return
+        }
+        if (!isVideoLoaded) {
+            videoStatus = "No file selected"
             emit()
             return
         }
         val vv = videoView ?: run {
-            videoStatus = "Stopped"
+            videoStatus = "No file selected"
             emit()
             return
         }
@@ -172,9 +211,11 @@ class VideoPlaybackController(
             @Suppress("DEPRECATION")
             vv.seekTo(0)
             vv.start()
+            isVideoPlaying = true
             videoStatus = "Playing"
             emit()
         } catch (_: Exception) {
+            isVideoPlaying = false
             videoStatus = "Stopped"
             emit()
         }

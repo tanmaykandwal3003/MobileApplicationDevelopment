@@ -22,28 +22,43 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import android.widget.VideoView
 import com.example.mediaplayer.audio.AudioUiState
 import com.example.mediaplayer.ui.theme.MediaPlayerTheme
 import com.example.mediaplayer.video.VideoPlaybackController
 import com.example.mediaplayer.video.VideoUiState
 
+private data class PlaybackButton(
+    val label: String,
+    val onClick: () -> Unit,
+    val enabled: Boolean
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaPlayerScreen(
+    videoController: VideoPlaybackController,
     audioUiState: AudioUiState = AudioUiState(),
+    videoUiState: VideoUiState = VideoUiState(),
     onOpenAudioFile: () -> Unit = {},
     onAudioPlay: () -> Unit = {},
     onAudioPause: () -> Unit = {},
     onAudioStop: () -> Unit = {},
-    onAudioRestart: () -> Unit = {}
+    onAudioRestart: () -> Unit = {},
+    onOpenVideoUrl: () -> Unit = {},
+    onVideoUrlChange: (String) -> Unit = {},
+    onVideoPlay: () -> Unit = {},
+    onVideoPause: () -> Unit = {},
+    onVideoStop: () -> Unit = {},
+    onVideoRestart: () -> Unit = {}
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -69,7 +84,16 @@ fun MediaPlayerScreen(
                 onStop = onAudioStop,
                 onRestart = onAudioRestart
             )
-            VideoPlayerCard()
+            VideoPlayerCard(
+                videoUiState = videoUiState,
+                videoController = videoController,
+                onOpenVideoUrl = onOpenVideoUrl,
+                onVideoUrlChange = onVideoUrlChange,
+                onVideoPlay = onVideoPlay,
+                onVideoPause = onVideoPause,
+                onVideoStop = onVideoStop,
+                onVideoRestart = onVideoRestart
+            )
         }
     }
 }
@@ -83,6 +107,11 @@ private fun AudioPlayerCard(
     onStop: () -> Unit,
     onRestart: () -> Unit
 ) {
+    val playEnabled = audioUiState.isAudioLoaded && !audioUiState.isAudioPlaying
+    val pauseEnabled = audioUiState.isAudioPlaying
+    val stopEnabled = audioUiState.isAudioInitialized
+    val restartEnabled = audioUiState.isAudioLoaded
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -101,19 +130,19 @@ private fun AudioPlayerCard(
             )
             ControlButtonRow(
                 buttons = listOf(
-                    "Open Audio File" to onOpenAudioFile,
-                    "Play" to onPlay,
-                    "Pause" to onPause
+                    PlaybackButton("Open Audio File", onOpenAudioFile, enabled = true),
+                    PlaybackButton("Play", onPlay, enabled = playEnabled),
+                    PlaybackButton("Pause", onPause, enabled = pauseEnabled)
                 )
             )
             ControlButtonRow(
                 buttons = listOf(
-                    "Stop" to onStop,
-                    "Restart" to onRestart
+                    PlaybackButton("Stop", onStop, enabled = stopEnabled),
+                    PlaybackButton("Restart", onRestart, enabled = restartEnabled)
                 )
             )
             Text(
-                text = "Status: ${audioUiState.status}",
+                text = "Status: ${audioUiState.audioStatus}",
                 fontSize = 14.sp
             )
         }
@@ -121,12 +150,23 @@ private fun AudioPlayerCard(
 }
 
 @Composable
-private fun VideoPlayerCard() {
-    val videoState = remember { mutableStateOf(VideoUiState()) }
-    val videoController = remember {
-        VideoPlaybackController { videoState.value = it }
-    }
-    val videoUi by videoState
+private fun VideoPlayerCard(
+    videoUiState: VideoUiState,
+    videoController: VideoPlaybackController,
+    onOpenVideoUrl: () -> Unit,
+    onVideoUrlChange: (String) -> Unit,
+    onVideoPlay: () -> Unit,
+    onVideoPause: () -> Unit,
+    onVideoStop: () -> Unit,
+    onVideoRestart: () -> Unit
+) {
+    val playEnabled =
+        videoUiState.isVideoBound && videoUiState.isVideoLoaded && !videoUiState.isVideoPlaying
+    val pauseEnabled = videoUiState.isVideoPlaying
+    val stopEnabled =
+        videoUiState.isVideoBound && videoUiState.videoUri != null
+    val restartEnabled =
+        videoUiState.isVideoBound && videoUiState.isVideoLoaded
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -145,23 +185,23 @@ private fun VideoPlayerCard() {
                 fontWeight = FontWeight.Bold
             )
             OutlinedTextField(
-                value = videoUi.videoUrl,
-                onValueChange = videoController::onUrlChange,
+                value = videoUiState.videoUrl,
+                onValueChange = onVideoUrlChange,
                 label = { Text("Enter Video URL") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
             ControlButtonRow(
                 buttons = listOf(
-                    "Open URL" to videoController::openUrl,
-                    "Play" to videoController::play,
-                    "Pause" to videoController::pause
+                    PlaybackButton("Open URL", onOpenVideoUrl, enabled = true),
+                    PlaybackButton("Play", onVideoPlay, enabled = playEnabled),
+                    PlaybackButton("Pause", onVideoPause, enabled = pauseEnabled)
                 )
             )
             ControlButtonRow(
                 buttons = listOf(
-                    "Stop" to videoController::stop,
-                    "Restart" to videoController::restart
+                    PlaybackButton("Stop", onVideoStop, enabled = stopEnabled),
+                    PlaybackButton("Restart", onVideoRestart, enabled = restartEnabled)
                 )
             )
             AndroidView(
@@ -174,12 +214,16 @@ private fun VideoPlayerCard() {
                     .fillMaxWidth()
                     .height(200.dp),
                 onRelease = { videoView ->
-                    videoView.stopPlayback()
+                    try {
+                        videoView.stopPlayback()
+                    } catch (_: Exception) {
+                        // ignore
+                    }
                     videoController.unbindView()
                 }
             )
             Text(
-                text = "Status: ${videoUi.videoStatus}",
+                text = "Status: ${videoUiState.videoStatus}",
                 fontSize = 14.sp
             )
         }
@@ -188,19 +232,20 @@ private fun VideoPlayerCard() {
 
 @Composable
 private fun ControlButtonRow(
-    buttons: List<Pair<String, () -> Unit>>
+    buttons: List<PlaybackButton>
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        buttons.forEach { (label, onClick) ->
+        buttons.forEach { button ->
             Button(
-                onClick = onClick,
+                onClick = button.onClick,
+                enabled = button.enabled,
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = label,
+                    text = button.label,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     lineHeight = 16.sp
@@ -213,7 +258,15 @@ private fun ControlButtonRow(
 @Preview(showBackground = true)
 @Composable
 private fun MediaPlayerScreenPreview() {
+    val videoState = remember { mutableStateOf(VideoUiState()) }
+    val videoController = remember {
+        VideoPlaybackController { videoState.value = it }
+    }
+    val videoUi by videoState
     MediaPlayerTheme {
-        MediaPlayerScreen()
+        MediaPlayerScreen(
+            videoController = videoController,
+            videoUiState = videoUi
+        )
     }
 }

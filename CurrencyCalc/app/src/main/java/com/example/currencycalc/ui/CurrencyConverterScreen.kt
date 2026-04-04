@@ -1,140 +1,218 @@
 package com.example.currencycalc.ui
 
-import android.util.Log
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.currencycalc.R
+import com.example.currencycalc.data.ExchangeRates
+import com.example.currencycalc.ui.theme.CurrencyCalcTheme
+import com.example.currencycalc.viewmodel.CurrencyConverterUiState
+import com.example.currencycalc.viewmodel.CurrencyViewModel
 
-private val CurrencyOptions = listOf("INR", "USD", "EUR", "JPY")
-
-private object CurrencyConverterDimens {
+private object ConverterDimens {
     val ScreenPadding = 16.dp
-    val SpacerSmall = 8.dp
-    val SpacerMedium = 12.dp
-    val SpacerLarge = 16.dp
+    val CardPadding = 16.dp
+    val SectionSpacing = 14.dp
+    val CardCornerRadius = 14.dp
+    val CardElevation = 8.dp
     val ButtonCornerRadius = 8.dp
+    val IconSpacing = 8.dp
+    val ResultFontSize = 20.sp
+    val DisclaimerSpacing = 6.dp
 }
-
-private object CurrencyConverterTypography {
-    val TitleSize = 24.sp
-    val TitleWeight = FontWeight.Bold
-    val ResultSize = 18.sp
-    val ResultWeight = FontWeight.Medium
-}
-
-private const val LogTag = "CurrencyConverterScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CurrencyConverterScreen(modifier: Modifier = Modifier) {
-    var amountInput by remember { mutableStateOf("") }
-    var fromCurrency by remember { mutableStateOf(CurrencyOptions.first()) }
-    var toCurrency by remember { mutableStateOf(CurrencyOptions[1]) }
+fun CurrencyConverterScreen(
+    viewModel: CurrencyViewModel,
+    onNavigateToSettings: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val uiState by viewModel.uiState.collectAsState()
     var fromMenuExpanded by remember { mutableStateOf(false) }
     var toMenuExpanded by remember { mutableStateOf(false) }
-    var resultValue by remember { mutableStateOf("--") }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(CurrencyConverterDimens.ScreenPadding),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Currency Converter",
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontSize = CurrencyConverterTypography.TitleSize,
-                fontWeight = CurrencyConverterTypography.TitleWeight
-            ),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(CurrencyConverterDimens.SpacerLarge))
-
-        OutlinedTextField(
-            value = amountInput,
-            onValueChange = { amountInput = it },
-            label = { Text("Enter Amount") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-
-        Spacer(modifier = Modifier.height(CurrencyConverterDimens.SpacerMedium))
-
-        CurrencyDropdownField(
-            label = "From Currency",
-            selected = fromCurrency,
-            options = CurrencyOptions,
-            expanded = fromMenuExpanded,
-            onExpandedChange = { fromMenuExpanded = it },
-            onSelected = { fromCurrency = it },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(CurrencyConverterDimens.SpacerSmall))
-
-        CurrencyDropdownField(
-            label = "To Currency",
-            selected = toCurrency,
-            options = CurrencyOptions,
-            expanded = toMenuExpanded,
-            onExpandedChange = { toMenuExpanded = it },
-            onSelected = { toCurrency = it },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(CurrencyConverterDimens.SpacerLarge))
-
-        Button(
-            onClick = { Log.d(LogTag, "Convert tapped") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(CurrencyConverterDimens.ButtonCornerRadius)
-        ) {
-            Text("Convert")
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.currency_converter_title)) },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.content_desc_settings)
+                        )
+                    }
+                }
+            )
         }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(ConverterDimens.ScreenPadding)
+        ) {
+            CurrencyConverterCard(
+                uiState = uiState,
+                fromMenuExpanded = fromMenuExpanded,
+                toMenuExpanded = toMenuExpanded,
+                onFromMenuExpandedChange = { fromMenuExpanded = it },
+                onToMenuExpandedChange = { toMenuExpanded = it },
+                onAmountChange = viewModel::onAmountChange,
+                onFromCurrencyChange = viewModel::onFromCurrencyChange,
+                onToCurrencyChange = viewModel::onToCurrencyChange,
+                onConvert = viewModel::convert
+            )
+        }
+    }
+}
 
-        Spacer(modifier = Modifier.height(CurrencyConverterDimens.SpacerMedium))
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CurrencyConverterCard(
+    uiState: CurrencyConverterUiState,
+    fromMenuExpanded: Boolean,
+    toMenuExpanded: Boolean,
+    onFromMenuExpandedChange: (Boolean) -> Unit,
+    onToMenuExpandedChange: (Boolean) -> Unit,
+    onAmountChange: (String) -> Unit,
+    onFromCurrencyChange: (String) -> Unit,
+    onToCurrencyChange: (String) -> Unit,
+    onConvert: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(ConverterDimens.CardCornerRadius),
+        elevation = CardDefaults.cardElevation(defaultElevation = ConverterDimens.CardElevation),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(ConverterDimens.CardPadding)
+        ) {
+            OutlinedTextField(
+                value = uiState.amount,
+                onValueChange = onAmountChange,
+                label = { Text(stringResource(R.string.amount_label)) },
+                placeholder = { Text(stringResource(R.string.amount_placeholder)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.AttachMoney,
+                        contentDescription = stringResource(R.string.content_desc_amount_icon)
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            )
 
-        Text(
-            text = "Result: $resultValue",
-            modifier = Modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontSize = CurrencyConverterTypography.ResultSize,
-                fontWeight = CurrencyConverterTypography.ResultWeight
-            ),
-            color = MaterialTheme.colorScheme.onSurface
-        )
+            Spacer(modifier = Modifier.height(ConverterDimens.SectionSpacing))
+
+            CurrencyDropdownField(
+                label = stringResource(R.string.from_currency_label),
+                selected = uiState.fromCurrency,
+                options = ExchangeRates.supportedCodes,
+                expanded = fromMenuExpanded,
+                onExpandedChange = onFromMenuExpandedChange,
+                onSelected = onFromCurrencyChange,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(ConverterDimens.SectionSpacing))
+
+            CurrencyDropdownField(
+                label = stringResource(R.string.to_currency_label),
+                selected = uiState.toCurrency,
+                options = ExchangeRates.supportedCodes,
+                expanded = toMenuExpanded,
+                onExpandedChange = onToMenuExpandedChange,
+                onSelected = onToCurrencyChange,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(ConverterDimens.SectionSpacing))
+
+            Button(
+                onClick = onConvert,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(ConverterDimens.ButtonCornerRadius)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Filled.SwapHoriz,
+                        contentDescription = stringResource(R.string.content_desc_convert)
+                    )
+                    Spacer(modifier = Modifier.width(ConverterDimens.IconSpacing))
+                    Text(stringResource(R.string.convert_button))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(ConverterDimens.SectionSpacing))
+
+            Text(
+                text = stringResource(R.string.result_line, uiState.result),
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = ConverterDimens.ResultFontSize,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(ConverterDimens.DisclaimerSpacing))
+
+            Text(
+                text = stringResource(R.string.rates_disclaimer),
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -182,12 +260,30 @@ private fun CurrencyDropdownField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
-private fun CurrencyConverterScreenPreview() {
-    MaterialTheme {
+private fun CurrencyConverterCardPreview() {
+    CurrencyCalcTheme(darkTheme = false) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            CurrencyConverterScreen()
+            Column(Modifier.padding(ConverterDimens.ScreenPadding)) {
+                CurrencyConverterCard(
+                    uiState = CurrencyConverterUiState(
+                        amount = "100",
+                        fromCurrency = ExchangeRates.CODE_USD,
+                        toCurrency = ExchangeRates.CODE_EUR,
+                        result = "92.22"
+                    ),
+                    fromMenuExpanded = false,
+                    toMenuExpanded = false,
+                    onFromMenuExpandedChange = {},
+                    onToMenuExpandedChange = {},
+                    onAmountChange = {},
+                    onFromCurrencyChange = {},
+                    onToCurrencyChange = {},
+                    onConvert = {}
+                )
+            }
         }
     }
 }

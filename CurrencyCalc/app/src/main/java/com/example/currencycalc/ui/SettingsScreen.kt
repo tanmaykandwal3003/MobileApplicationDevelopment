@@ -22,15 +22,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.currencycalc.R
 import com.example.currencycalc.ui.theme.CurrencyCalcTheme
 import com.example.currencycalc.viewmodel.ThemeViewModel
 
 private object SettingsDimens {
     val ContentPadding = 16.dp
-    val RowSpacing = 12.dp
+    val TitleSize = 20.sp
+    val RowSpacing = 16.dp
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,13 +43,13 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isDark by themeViewModel.isDarkTheme.collectAsState()
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.screen_settings_title)) },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -65,6 +68,13 @@ fun SettingsScreen(
                 .padding(SettingsDimens.ContentPadding),
             verticalArrangement = Arrangement.spacedBy(SettingsDimens.RowSpacing)
         ) {
+            Text(
+                text = stringResource(R.string.screen_settings_title),
+                fontSize = SettingsDimens.TitleSize,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -76,8 +86,8 @@ fun SettingsScreen(
                     modifier = Modifier.weight(1f)
                 )
                 Switch(
-                    checked = isDark,
-                    onCheckedChange = themeViewModel::setDarkTheme
+                    checked = isDarkTheme,
+                    onCheckedChange = { themeViewModel.toggleTheme() }
                 )
             }
         }

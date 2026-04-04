@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         audioController = AudioPlayerController(this) { audioUiState.value = it }
-        videoController = VideoPlaybackController { videoUiState.value = it }
+        videoController = VideoPlaybackController(this) { videoUiState.value = it }
         playbackCoordinator = PlaybackCoordinator(
             audio = audioController,
             video = videoController,

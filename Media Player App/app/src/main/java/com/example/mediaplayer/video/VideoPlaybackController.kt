@@ -1,10 +1,12 @@
 package com.example.mediaplayer.video
 
+import android.content.Context
 import android.net.Uri
-import android.webkit.URLUtil
+import android.widget.Toast
 import android.widget.VideoView
 
 class VideoPlaybackController(
+    private val context: Context,
     private val onState: (VideoUiState) -> Unit
 ) {
 
@@ -19,11 +21,22 @@ class VideoPlaybackController(
         emit()
     }
 
+    private fun toast(message: String) {
+        Toast.makeText(context.applicationContext, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun formatUrlDisplay(raw: String): String {
+        val t = raw.trim()
+        if (t.length <= 52) return t
+        return t.take(25) + "…" + t.takeLast(24)
+    }
+
     private fun emit() {
         onState(
             VideoUiState(
                 videoUrl = videoUrl,
                 videoUri = videoUri,
+                videoUrlDisplay = formatUrlDisplay(videoUrl),
                 videoStatus = videoStatus,
                 isVideoPlaying = isVideoPlaying,
                 isVideoLoaded = isVideoLoaded,
@@ -32,25 +45,43 @@ class VideoPlaybackController(
         )
     }
 
+    private fun isValidStreamUrl(trimmed: String): Boolean {
+        if (trimmed.isEmpty()) return false
+        val lower = trimmed.lowercase()
+        if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+            return false
+        }
+        val uri = try {
+            Uri.parse(trimmed)
+        } catch (_: Exception) {
+            return false
+        }
+        return !uri.scheme.isNullOrBlank() && !uri.host.isNullOrBlank()
+    }
+
     fun bindView(view: VideoView) {
         videoView = view
         view.setOnErrorListener { _, _, _ ->
+            toast("Error loading video")
             isVideoPlaying = false
             isVideoLoaded = false
             videoStatus = "Stopped"
+            try {
+                view.stopPlayback()
+            } catch (_: Exception) {
+                // ignore
+            }
             emit()
             true
         }
         view.setOnCompletionListener {
             isVideoPlaying = false
-            if (videoUri != null) {
-                videoStatus = "Ready"
-            } else {
-                videoStatus = "No file selected"
-            }
+            videoStatus = if (videoUri != null) "Ready" else "No file selected"
             emit()
         }
         videoUri?.let { uri ->
+            videoStatus = "Loading..."
+            emit()
             applyVideoUri(view, uri)
         }
     }
@@ -73,32 +104,21 @@ class VideoPlaybackController(
 
     fun openUrl() {
         val trimmed = videoUrl.trim()
-        if (trimmed.isEmpty()) {
-            videoStatus = "No file selected"
+        if (!isValidStreamUrl(trimmed)) {
+            toast("Please enter a valid video URL")
+            if (trimmed.isEmpty()) {
+                videoStatus = "No file selected"
+            } else {
+                videoStatus = "Stopped"
+            }
             emit()
             return
         }
-        if (!URLUtil.isValidUrl(trimmed)) {
-            videoStatus = "Stopped"
-            emit()
-            return
-        }
-        val uri = try {
-            Uri.parse(trimmed)
-        } catch (_: Exception) {
-            videoStatus = "Stopped"
-            emit()
-            return
-        }
-        if (uri.scheme.isNullOrBlank() || uri.host.isNullOrBlank()) {
-            videoStatus = "Stopped"
-            emit()
-            return
-        }
+        val uri = Uri.parse(trimmed)
         videoUri = uri
         isVideoLoaded = false
         isVideoPlaying = false
-        videoStatus = "Stopped"
+        videoStatus = "Loading..."
         emit()
         val vv = videoView
         if (vv != null) {
@@ -116,6 +136,7 @@ class VideoPlaybackController(
             }
             vv.setVideoURI(uri)
         } catch (_: Exception) {
+            toast("Error loading video")
             isVideoLoaded = false
             isVideoPlaying = false
             videoStatus = "Stopped"
@@ -145,6 +166,7 @@ class VideoPlaybackController(
             videoStatus = "Playing"
             emit()
         } catch (_: Exception) {
+            toast("Error loading video")
             isVideoPlaying = false
             videoStatus = "Stopped"
             emit()
@@ -160,6 +182,7 @@ class VideoPlaybackController(
             videoStatus = "Paused"
             emit()
         } catch (_: Exception) {
+            toast("Error loading video")
             isVideoPlaying = false
             videoStatus = "Stopped"
             emit()
@@ -175,6 +198,8 @@ class VideoPlaybackController(
             return
         }
         isVideoPlaying = false
+        videoStatus = "Loading..."
+        emit()
         try {
             vv.setOnPreparedListener {
                 isVideoLoaded = true
@@ -184,6 +209,7 @@ class VideoPlaybackController(
             }
             vv.setVideoURI(uri)
         } catch (_: Exception) {
+            toast("Error loading video")
             isVideoLoaded = false
             isVideoPlaying = false
             videoStatus = "Stopped"
@@ -215,6 +241,7 @@ class VideoPlaybackController(
             videoStatus = "Playing"
             emit()
         } catch (_: Exception) {
+            toast("Error loading video")
             isVideoPlaying = false
             videoStatus = "Stopped"
             emit()

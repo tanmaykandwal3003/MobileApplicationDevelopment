@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Sensors</string>
+    <string name="sensors_dashboard">Sensor Data Dashboard</string>
+    <string name="status_loading">Checking sensor availability...</string>
+    <string name="status_available_prefix">Sensor availability</string>
+    <string name="status_sensor_manager_unavailable">Sensor manager is unavailable on this device.</string>
+
+    <string name="label_accelerometer">Accelerometer</string>
+    <string name="label_light">Light</string>
+    <string name="label_proximity">Proximity</string>
+
+    <string name="available">Available</string>
+    <string name="not_available">Not available</string>
+    <string name="not_available_short">N/A</string>
+
+    <string name="acc_x">X: %1$s m/s^2</string>
+    <string name="acc_y">Y: %1$s m/s^2</string>
+    <string name="acc_z">Z: %1$s m/s^2</string>
+    <string name="light_value">Ambient light: %1$s lx</string>
+    <string name="proximity_value">Distance: %1$s cm</string>
+
+    <string name="acc_x_default">X: -- m/s^2</string>
+    <string name="acc_y_default">Y: -- m/s^2</string>
+    <string name="acc_z_default">Z: -- m/s^2</string>
+    <string name="light_default">Ambient light: -- lx</string>
+    <string name="proximity_default">Distance: -- cm</string>
+</resources>

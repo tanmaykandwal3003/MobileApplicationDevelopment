@@ -98,9 +98,9 @@ private fun AccelerometerCard(
         if (!isAvailable) {
             ValueText(valueText = "Not Available")
         } else {
-            ValueText(valueText = "X: ${String.format(\"%.2f\", accelX)}")
-            ValueText(valueText = "Y: ${String.format(\"%.2f\", accelY)}")
-            ValueText(valueText = "Z: ${String.format(\"%.2f\", accelZ)}")
+            ValueText(valueText = "X: ${String.format("%.2f", accelX)}")
+            ValueText(valueText = "Y: ${String.format("%.2f", accelY)}")
+            ValueText(valueText = "Z: ${String.format("%.2f", accelZ)}")
         }
     }
 }
@@ -119,7 +119,7 @@ private fun LightSensorCard(
         if (!isAvailable) {
             ValueText(valueText = "Not Available")
         } else {
-            ValueText(valueText = "Light Level: ${String.format(\"%.2f\", light)} lx")
+            ValueText(valueText = "Light Level: ${String.format("%.2f", light)} lx")
         }
     }
 }
@@ -138,7 +138,7 @@ private fun ProximitySensorCard(
         if (!isAvailable) {
             ValueText(valueText = "Not Available")
         } else {
-            ValueText(valueText = "Distance: ${String.format(\"%.2f\", proximity)} cm")
+            ValueText(valueText = "Distance: ${String.format("%.2f", proximity)} cm")
         }
     }
 }

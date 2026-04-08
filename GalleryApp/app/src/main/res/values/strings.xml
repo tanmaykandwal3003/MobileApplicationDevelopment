@@ -3,7 +3,9 @@
     <string name="home_title">Photo Gallery App</string>
     <string name="home_subtitle">Capture images and browse a selected folder.</string>
     <string name="take_photo">Take Photo</string>
+    <string name="take_photo_hint">Shoot and save directly to your folder</string>
     <string name="open_folder">Choose Folder and View Images</string>
+    <string name="open_folder_short">Open Folder</string>
     <string name="gallery_title">Folder Images</string>
     <string name="sample_folder_path">Folder: /storage/emulated/0/Pictures/MyGallery</string>
     <string name="folder_label">Folder: %1$s</string>

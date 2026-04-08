@@ -1,17 +1,15 @@
 <resources>
-    <string name="app_name">CurrencyCalc</string>
-    <string name="currency_converter_title">Currency Converter</string>
-    <string name="screen_settings_title">Settings</string>
-    <string name="amount_label">Enter Amount</string>
-    <string name="amount_placeholder">0.00</string>
-    <string name="from_currency_label">From Currency</string>
-    <string name="to_currency_label">To Currency</string>
-    <string name="convert_button">Convert</string>
-    <string name="result_line">Result: %1$s</string>
-    <string name="rates_disclaimer">Rates are approximate (March 2026)</string>
-    <string name="settings_dark_mode">Dark Mode</string>
-    <string name="content_desc_settings">Open settings</string>
-    <string name="content_desc_back">Back</string>
-    <string name="content_desc_amount_icon">Amount</string>
-    <string name="content_desc_convert">Convert currency</string>
+    <string name="app_name">Currency Converter</string>
+    <string name="main_title">Currency Converter</string>
+    <string name="settings">Settings</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="back">Back</string>
+    <string name="enter_amount">Enter Amount</string>
+    <string name="from_currency">From Currency</string>
+    <string name="to_currency">To Currency</string>
+    <string name="convert">&lt;-&gt; Convert</string>
+    <string name="result_empty">---</string>
+    <string name="result_default">Result: ---</string>
+    <string name="result_format">Result: %1$s</string>
+    <string name="rates_note">Rates are approximate (March 2026)</string>
 </resources>

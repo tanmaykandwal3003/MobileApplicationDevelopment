@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="screenBackground">#17151D</color>
+    <color name="cardBackground">#211F2A</color>
+    <color name="cardStroke">#373347</color>
+    <color name="textPrimary">#F5F0FF</color>
+    <color name="textSecondary">#C6BDD6</color>
+    <color name="actionPurple">#8A73D0</color>
+    <color name="actionText">#F8F5FF</color>
+    <color name="fieldStroke">#7A7386</color>
+    <color name="fieldFocusedStroke">#A997DF</color>
+</resources>

@@ -1,9 +1,26 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.CurrencyCalc" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.CurrencyExchanger" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/actionPurple</item>
+        <item name="colorOnPrimary">@color/actionText</item>
+        <item name="android:statusBarColor">@color/screenBackground</item>
+        <item name="android:windowBackground">@color/screenBackground</item>
+        <item name="android:navigationBarColor">@color/screenBackground</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 
-    <style name="Theme.CurrencyCalc" parent="Base.Theme.CurrencyCalc" />
+    <style name="Theme.CurrencyExchanger" parent="Base.Theme.CurrencyExchanger" />
+
+    <style name="Widget.CurrencyConverter.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@android:color/transparent</item>
+        <item name="boxStrokeColor">@color/fieldStroke</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="hintTextColor">@color/textSecondary</item>
+        <item name="android:textColorHint">@color/textSecondary</item>
+    </style>
 </resources>

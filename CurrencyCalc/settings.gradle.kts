@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CurrencyCalc"
+rootProject.name = "Currency Exchanger"
 include(":app")
  

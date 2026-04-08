@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GalleryApp">
         <activity
+            android:name=".ImagePreviewActivity"
+            android:exported="false" />
+        <activity
             android:name=".ImageDetailsActivity"
             android:exported="false" />
         <activity
@@ -21,6 +24,9 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

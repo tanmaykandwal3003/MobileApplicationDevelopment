@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.net.Uri;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -74,11 +74,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        View cardTakePhoto = findViewById(R.id.cardTakePhoto);
-        View cardOpenFolder = findViewById(R.id.cardOpenFolder);
+        Button buttonTakePhoto = findViewById(R.id.buttonTakePhoto);
+        Button buttonOpenFolder = findViewById(R.id.buttonOpenFolder);
 
-        cardTakePhoto.setOnClickListener(v -> onTakePhotoClicked());
-        cardOpenFolder.setOnClickListener(v -> onOpenFolderClicked());
+        buttonTakePhoto.setOnClickListener(v -> onTakePhotoClicked());
+        buttonOpenFolder.setOnClickListener(v -> onOpenFolderClicked());
     }
 
     private void onTakePhotoClicked() {

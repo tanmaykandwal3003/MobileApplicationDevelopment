@@ -3,13 +3,9 @@ package com.example.galleryapp;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageView;
-import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.documentfile.provider.DocumentFile;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -28,7 +24,6 @@ public class ImageDetailsActivity extends AppCompatActivity {
         TextView textPath = findViewById(R.id.textPath);
         TextView textSize = findViewById(R.id.textSize);
         TextView textDateTaken = findViewById(R.id.textDateTaken);
-        Button buttonDelete = findViewById(R.id.buttonDelete);
 
         String uriText = getIntent().getStringExtra("uri");
         String name = getIntent().getStringExtra("name");
@@ -46,37 +41,10 @@ public class ImageDetailsActivity extends AppCompatActivity {
         textSize.setText(getString(R.string.label_size, formatSize(sizeBytes)));
         textDateTaken.setText(getString(R.string.label_date_taken, formatDate(dateTakenMillis)));
 
-        buttonDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
     }
 
     private String safeValue(String value) {
         return value == null || value.isEmpty() ? "N/A" : value;
-    }
-
-    private void showDeleteConfirmationDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.delete_dialog_title)
-                .setMessage(R.string.delete_dialog_message)
-                .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    deleteImageAndClose();
-                })
-                .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
-                .show();
-    }
-
-    private void deleteImageAndClose() {
-        if (imageUri == null) {
-            Toast.makeText(this, "Unable to delete image", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        DocumentFile file = DocumentFile.fromSingleUri(this, imageUri);
-        if (file != null && file.exists() && file.delete()) {
-            Toast.makeText(this, "Image deleted", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            Toast.makeText(this, "Delete failed", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private String formatDate(long dateTakenMillis) {

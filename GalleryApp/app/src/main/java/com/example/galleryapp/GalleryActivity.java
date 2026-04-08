@@ -93,13 +93,13 @@ public class GalleryActivity extends AppCompatActivity {
 
         List<ImageItem> imageItems = readImagesFromFolder(folder);
         ImageGridAdapter adapter = new ImageGridAdapter(imageItems, imageItem -> {
-            Intent detailsIntent = new Intent(GalleryActivity.this, ImageDetailsActivity.class);
-            detailsIntent.putExtra("uri", imageItem.getUri().toString());
-            detailsIntent.putExtra("name", imageItem.getName());
-            detailsIntent.putExtra("path", imageItem.getPath());
-            detailsIntent.putExtra("sizeBytes", imageItem.getSizeBytes());
-            detailsIntent.putExtra("dateTakenMillis", imageItem.getDateTakenMillis());
-            startActivity(detailsIntent);
+            Intent previewIntent = new Intent(GalleryActivity.this, ImagePreviewActivity.class);
+            previewIntent.putExtra("uri", imageItem.getUri().toString());
+            previewIntent.putExtra("name", imageItem.getName());
+            previewIntent.putExtra("path", imageItem.getPath());
+            previewIntent.putExtra("sizeBytes", imageItem.getSizeBytes());
+            previewIntent.putExtra("dateTakenMillis", imageItem.getDateTakenMillis());
+            startActivity(previewIntent);
         });
         recyclerImages.setAdapter(adapter);
 

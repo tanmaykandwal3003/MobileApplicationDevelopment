@@ -2,7 +2,6 @@ package com.example.galleryapp;
 
 import android.Manifest;
 import android.os.Bundle;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.documentfile.provider.DocumentFile;
 
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -25,23 +23,30 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_FOLDER_URI = "folder_uri";
 
     private boolean pendingTakePhoto = false;
+    private Uri pendingCapturedImageUri;
 
     private final ActivityResultLauncher<String> requestCameraPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    openCameraPreview();
+                    openCameraCapture();
                 } else {
                     Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show();
                 }
             });
 
-    private final ActivityResultLauncher<Void> takePicturePreviewLauncher =
-            registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), bitmap -> {
-                if (bitmap == null) {
+    private final ActivityResultLauncher<Uri> takePictureLauncher =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), isSaved -> {
+                if (isSaved) {
+                    pendingCapturedImageUri = null;
+                    Toast.makeText(this, "Photo saved to selected folder", Toast.LENGTH_SHORT).show();
+                    String folderUriText = getSavedFolderUri();
+                    if (folderUriText != null) {
+                        openGallery(folderUriText);
+                    }
+                } else {
+                    cleanupFailedCapture();
                     Toast.makeText(this, "No photo captured", Toast.LENGTH_SHORT).show();
-                    return;
                 }
-                savePhotoToSelectedFolder(bitmap);
             });
 
     private final ActivityResultLauncher<Uri> openFolderLauncher =
@@ -93,17 +98,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void ensureCameraPermissionAndCapture() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            openCameraPreview();
+            openCameraCapture();
         } else {
             requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
 
-    private void openCameraPreview() {
-        takePicturePreviewLauncher.launch(null);
-    }
-
-    private void savePhotoToSelectedFolder(Bitmap bitmap) {
+    private void openCameraCapture() {
         String folderUriText = getSavedFolderUri();
         if (folderUriText == null) {
             Toast.makeText(this, "Please choose a folder first", Toast.LENGTH_SHORT).show();
@@ -123,22 +124,19 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Could not create image file", Toast.LENGTH_SHORT).show();
             return;
         }
+        pendingCapturedImageUri = imageFile.getUri();
+        takePictureLauncher.launch(pendingCapturedImageUri);
+    }
 
-        try (OutputStream stream = getContentResolver().openOutputStream(imageFile.getUri())) {
-            if (stream == null) {
-                Toast.makeText(this, "Unable to save photo", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            boolean saved = bitmap.compress(Bitmap.CompressFormat.JPEG, 95, stream);
-            if (!saved) {
-                Toast.makeText(this, "Could not save captured photo", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Toast.makeText(this, "Photo saved to selected folder", Toast.LENGTH_SHORT).show();
-            openGallery(folderUriText);
-        } catch (Exception e) {
-            Toast.makeText(this, "Save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+    private void cleanupFailedCapture() {
+        if (pendingCapturedImageUri == null) {
+            return;
         }
+        DocumentFile file = DocumentFile.fromSingleUri(this, pendingCapturedImageUri);
+        if (file != null && file.exists()) {
+            file.delete();
+        }
+        pendingCapturedImageUri = null;
     }
 
     private void openGallery(String folderUri) {

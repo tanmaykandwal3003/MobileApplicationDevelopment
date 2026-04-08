@@ -4,14 +4,19 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.exifinterface.media.ExifInterface;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,10 +26,25 @@ import java.util.Locale;
 
 public class GalleryActivity extends AppCompatActivity {
     public static final String EXTRA_FOLDER_URI = "extra_folder_uri";
+    private static final String PREFS_NAME = "gallery_prefs";
+    private static final String KEY_FOLDER_URI = "folder_uri";
 
     private TextView textFolderPath;
     private TextView textEmpty;
     private RecyclerView recyclerImages;
+    private String currentFolderUri;
+
+    private final ActivityResultLauncher<Uri> openFolderLauncher =
+            registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), uri -> {
+                if (uri == null) {
+                    return;
+                }
+                final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                currentFolderUri = uri.toString();
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putString(KEY_FOLDER_URI, currentFolderUri).apply();
+                loadFolderImages();
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +54,9 @@ public class GalleryActivity extends AppCompatActivity {
         textFolderPath = findViewById(R.id.textFolderPath);
         textEmpty = findViewById(R.id.textEmpty);
         recyclerImages = findViewById(R.id.recyclerImages);
+        Button buttonChangeFolder = findViewById(R.id.buttonChangeFolder);
         recyclerImages.setLayoutManager(new GridLayoutManager(this, 3));
+        buttonChangeFolder.setOnClickListener(v -> openFolderLauncher.launch(null));
 
         loadFolderImages();
     }
@@ -46,18 +68,20 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void loadFolderImages() {
-        String folderUriString = getIntent().getStringExtra(EXTRA_FOLDER_URI);
-        if (folderUriString == null || folderUriString.isEmpty()) {
-            folderUriString = getSharedPreferences("gallery_prefs", MODE_PRIVATE).getString("folder_uri", null);
+        if (currentFolderUri == null || currentFolderUri.isEmpty()) {
+            currentFolderUri = getIntent().getStringExtra(EXTRA_FOLDER_URI);
+        }
+        if (currentFolderUri == null || currentFolderUri.isEmpty()) {
+            currentFolderUri = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString(KEY_FOLDER_URI, null);
         }
 
-        if (folderUriString == null || folderUriString.isEmpty()) {
+        if (currentFolderUri == null || currentFolderUri.isEmpty()) {
             Toast.makeText(this, "Please choose a folder first", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        Uri treeUri = Uri.parse(folderUriString);
+        Uri treeUri = Uri.parse(currentFolderUri);
         DocumentFile folder = DocumentFile.fromTreeUri(this, treeUri);
         if (folder == null || !folder.exists() || !folder.isDirectory()) {
             Toast.makeText(this, "Selected folder is not available", Toast.LENGTH_SHORT).show();
@@ -103,9 +127,27 @@ public class GalleryActivity extends AppCompatActivity {
                     file.getUri(),
                     file.getUri().toString(),
                     file.length(),
-                    file.lastModified()
+                    resolveDateTaken(file)
             ));
         }
         return images;
+    }
+
+    private long resolveDateTaken(DocumentFile file) {
+        try (InputStream stream = getContentResolver().openInputStream(file.getUri())) {
+            if (stream != null) {
+                ExifInterface exif = new ExifInterface(stream);
+                String dateTimeOriginal = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
+                if (dateTimeOriginal != null) {
+                    long exifTime = ExifInterfaceUtils.parseExifDate(dateTimeOriginal);
+                    if (exifTime > 0L) {
+                        return exifTime;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // Fallback to last modified.
+        }
+        return file.lastModified();
     }
 }

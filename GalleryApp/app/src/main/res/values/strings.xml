@@ -7,6 +7,7 @@
     <string name="gallery_title">Folder Images</string>
     <string name="sample_folder_path">Folder: /storage/emulated/0/Pictures/MyGallery</string>
     <string name="folder_label">Folder: %1$s</string>
+    <string name="change_folder">Change Folder</string>
     <string name="sample_image_name">IMG_001.jpg</string>
     <string name="image_thumbnail">Image Thumbnail</string>
     <string name="image_details_title">Image Details</string>

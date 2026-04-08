@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="bg_dark">#F3EFFB</color>
+    <color name="surface_card">#FFFFFF</color>
+    <color name="surface_input">#F2EEF9</color>
+    <color name="surface_button_disabled">#E6E0F0</color>
+    <color name="primary_lavender">#D7C1FF</color>
+    <color name="text_primary">#231F32</color>
+    <color name="text_secondary">#6F6882</color>
+    <color name="divider">#D8D2E7</color>
+    <color name="video_black">#000000</color>
 </resources>

@@ -1,3 +1,19 @@
 <resources>
-    <string name="app_name">Media Player</string>
+    <string name="app_name">Media Player App</string>
+    <string name="title_audio">Audio Player</string>
+    <string name="title_video">Video Player</string>
+    <string name="label_file">File: —</string>
+    <string name="label_url">URL: —</string>
+    <string name="hint_video_url">Enter Video URL</string>
+    <string name="audio_not_selected">Audio: No file selected</string>
+    <string name="video_not_selected">Video: No file selected</string>
+    <string name="open_file">Open\nfile</string>
+    <string name="open_url">Open\nURL</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Stop</string>
+    <string name="restart">Restart</string>
+    <string name="settings">Settings</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="theme_desc">Toggle between light and dark appearance.</string>
 </resources>

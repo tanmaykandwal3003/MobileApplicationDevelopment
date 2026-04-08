@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="bg_surface">#F6F8FC</color>
+    <color name="card_surface">#FFFFFFFF</color>
+    <color name="text_primary">#1F2937</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="brand_primary">#3B82F6</color>
+    <color name="brand_primary_dark">#2563EB</color>
+    <color name="danger">#DC2626</color>
 </resources>

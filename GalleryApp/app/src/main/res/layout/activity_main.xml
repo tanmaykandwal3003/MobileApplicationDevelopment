@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/bg_surface"
     android:orientation="vertical"
     android:padding="20dp"
     tools:context=".MainActivity">
@@ -12,8 +14,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:text="@string/home_title"
-        android:textColor="#222222"
-        android:textSize="28sp"
+        android:textColor="@color/text_primary"
+        android:textSize="30sp"
         android:textStyle="bold" />
 
     <TextView
@@ -21,24 +23,48 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:text="@string/home_subtitle"
-        android:textColor="#666666"
+        android:textColor="@color/text_secondary"
         android:textSize="15sp" />
 
-    <Button
-        android:id="@+id/buttonTakePhoto"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginBottom="14dp"
-        android:text="@string/take_photo"
-        android:textAllCaps="false"
-        android:textSize="18sp" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:cardBackgroundColor="@color/card_surface"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#E3E8F1"
+        app:strokeWidth="1dp">
 
-    <Button
-        android:id="@+id/buttonOpenFolder"
+        <Button
+            android:id="@+id/buttonTakePhoto"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="@color/brand_primary"
+            android:text="@string/take_photo"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="17sp" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="@string/open_folder"
-        android:textAllCaps="false"
-        android:textSize="18sp" />
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@color/card_surface"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#E3E8F1"
+        app:strokeWidth="1dp">
+
+        <Button
+            android:id="@+id/buttonOpenFolder"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="@color/brand_primary_dark"
+            android:text="@string/open_folder"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="17sp" />
+    </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>

@@ -6,6 +6,7 @@
     <string name="open_folder">Choose Folder and View Images</string>
     <string name="gallery_title">Folder Images</string>
     <string name="sample_folder_path">Folder: /storage/emulated/0/Pictures/MyGallery</string>
+    <string name="folder_label">Folder: %1$s</string>
     <string name="sample_image_name">IMG_001.jpg</string>
     <string name="image_thumbnail">Image Thumbnail</string>
     <string name="image_details_title">Image Details</string>
@@ -19,4 +20,5 @@
     <string name="label_path">Path: %1$s</string>
     <string name="label_size">Size: %1$s</string>
     <string name="label_date_taken">Date taken: %1$s</string>
+    <string name="no_images_found">No images found in this folder.</string>
 </resources>

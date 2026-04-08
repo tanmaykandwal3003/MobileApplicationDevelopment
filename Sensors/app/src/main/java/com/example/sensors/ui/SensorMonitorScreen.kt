@@ -23,7 +23,16 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SensorMonitorScreen() {
+fun SensorMonitorScreen(
+    accelX: Float,
+    accelY: Float,
+    accelZ: Float,
+    light: Float,
+    proximity: Float,
+    accelerometerAvailable: Boolean = true,
+    lightAvailable: Boolean = true,
+    proximityAvailable: Boolean = true
+) {
     MaterialTheme {
         Scaffold(
             topBar = {
@@ -39,9 +48,20 @@ fun SensorMonitorScreen() {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                AccelerometerCard()
-                LightSensorCard()
-                ProximitySensorCard()
+                AccelerometerCard(
+                    accelX = accelX,
+                    accelY = accelY,
+                    accelZ = accelZ,
+                    isAvailable = accelerometerAvailable
+                )
+                LightSensorCard(
+                    light = light,
+                    isAvailable = lightAvailable
+                )
+                ProximitySensorCard(
+                    proximity = proximity,
+                    isAvailable = proximityAvailable
+                )
             }
         }
     }
@@ -63,45 +83,83 @@ private fun SensorReadingCard(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-private fun AccelerometerCard() {
+private fun AccelerometerCard(
+    accelX: Float,
+    accelY: Float,
+    accelZ: Float,
+    isAvailable: Boolean
+) {
     SensorReadingCard {
         Text(
             text = "Accelerometer",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
-        Text(text = "X: 0.0")
-        Text(text = "Y: 0.0")
-        Text(text = "Z: 0.0")
+        if (!isAvailable) {
+            ValueText(valueText = "Not Available")
+        } else {
+            ValueText(valueText = "X: ${String.format(\"%.2f\", accelX)}")
+            ValueText(valueText = "Y: ${String.format(\"%.2f\", accelY)}")
+            ValueText(valueText = "Z: ${String.format(\"%.2f\", accelZ)}")
+        }
     }
 }
 
 @Composable
-private fun LightSensorCard() {
+private fun LightSensorCard(
+    light: Float,
+    isAvailable: Boolean
+) {
     SensorReadingCard {
         Text(
             text = "Light Sensor",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
-        Text(text = "Light Level: 0.0 lx")
+        if (!isAvailable) {
+            ValueText(valueText = "Not Available")
+        } else {
+            ValueText(valueText = "Light Level: ${String.format(\"%.2f\", light)} lx")
+        }
     }
 }
 
 @Composable
-private fun ProximitySensorCard() {
+private fun ProximitySensorCard(
+    proximity: Float,
+    isAvailable: Boolean
+) {
     SensorReadingCard {
         Text(
             text = "Proximity Sensor",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
-        Text(text = "Distance: 0.0 cm")
+        if (!isAvailable) {
+            ValueText(valueText = "Not Available")
+        } else {
+            ValueText(valueText = "Distance: ${String.format(\"%.2f\", proximity)} cm")
+        }
     }
+}
+
+@Composable
+private fun ValueText(valueText: String) {
+    Text(
+        text = valueText,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold
+    )
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun SensorMonitorScreenPreview() {
-    SensorMonitorScreen()
+    SensorMonitorScreen(
+        accelX = 1.23f,
+        accelY = 4.56f,
+        accelZ = 7.89f,
+        light = 120.0f,
+        proximity = 5.0f
+    )
 }

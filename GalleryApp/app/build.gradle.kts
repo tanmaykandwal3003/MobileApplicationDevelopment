@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.sensors"
+    namespace = "com.example.galleryapp"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.sensors"
+        applicationId = "com.example.galleryapp"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

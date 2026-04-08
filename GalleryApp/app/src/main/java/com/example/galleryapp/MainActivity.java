@@ -6,14 +6,25 @@ import android.net.Uri;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.documentfile.provider.DocumentFile;
+import androidx.exifinterface.media.ExifInterface;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -24,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean pendingTakePhoto = false;
     private Uri pendingCapturedImageUri;
+    private RecyclerView recyclerHomeImages;
+    private TextView textSelectedFolder;
+    private TextView textHomeEmpty;
 
     private final ActivityResultLauncher<String> requestCameraPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -39,10 +53,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isSaved) {
                     pendingCapturedImageUri = null;
                     Toast.makeText(this, "Photo saved to selected folder", Toast.LENGTH_SHORT).show();
-                    String folderUriText = getSavedFolderUri();
-                    if (folderUriText != null) {
-                        openGallery(folderUriText);
-                    }
+                    loadHomeImages();
                 } else {
                     cleanupFailedCapture();
                     Toast.makeText(this, "No photo captured", Toast.LENGTH_SHORT).show();
@@ -65,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                     pendingTakePhoto = false;
                     ensureCameraPermissionAndCapture();
                 } else {
-                    openGallery(uri.toString());
+                    loadHomeImages();
                 }
             });
 
@@ -76,9 +87,20 @@ public class MainActivity extends AppCompatActivity {
 
         Button buttonTakePhoto = findViewById(R.id.buttonTakePhoto);
         Button buttonOpenFolder = findViewById(R.id.buttonOpenFolder);
+        textSelectedFolder = findViewById(R.id.textSelectedFolder);
+        textHomeEmpty = findViewById(R.id.textHomeEmpty);
+        recyclerHomeImages = findViewById(R.id.recyclerHomeImages);
+        recyclerHomeImages.setLayoutManager(new GridLayoutManager(this, 3));
 
         buttonTakePhoto.setOnClickListener(v -> onTakePhotoClicked());
         buttonOpenFolder.setOnClickListener(v -> onOpenFolderClicked());
+        loadHomeImages();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadHomeImages();
     }
 
     private void onTakePhotoClicked() {
@@ -139,10 +161,80 @@ public class MainActivity extends AppCompatActivity {
         pendingCapturedImageUri = null;
     }
 
-    private void openGallery(String folderUri) {
-        Intent intent = new Intent(this, GalleryActivity.class);
-        intent.putExtra(GalleryActivity.EXTRA_FOLDER_URI, folderUri);
-        startActivity(intent);
+    private void loadHomeImages() {
+        String folderUriText = getSavedFolderUri();
+        if (folderUriText == null || folderUriText.isEmpty()) {
+            textSelectedFolder.setVisibility(View.GONE);
+            recyclerHomeImages.setAdapter(new ImageGridAdapter(Collections.emptyList(), imageItem -> {}));
+            textHomeEmpty.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        Uri treeUri = Uri.parse(folderUriText);
+        DocumentFile folder = DocumentFile.fromTreeUri(this, treeUri);
+        if (folder == null || !folder.exists() || !folder.isDirectory()) {
+            textSelectedFolder.setVisibility(View.GONE);
+            recyclerHomeImages.setAdapter(new ImageGridAdapter(Collections.emptyList(), imageItem -> {}));
+            textHomeEmpty.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        textSelectedFolder.setVisibility(View.GONE);
+        List<ImageItem> images = readImagesFromFolder(folder);
+        ImageGridAdapter adapter = new ImageGridAdapter(images, imageItem -> {
+            Intent previewIntent = new Intent(MainActivity.this, ImagePreviewActivity.class);
+            previewIntent.putExtra("uri", imageItem.getUri().toString());
+            previewIntent.putExtra("name", imageItem.getName());
+            previewIntent.putExtra("path", imageItem.getPath());
+            previewIntent.putExtra("sizeBytes", imageItem.getSizeBytes());
+            previewIntent.putExtra("dateTakenMillis", imageItem.getDateTakenMillis());
+            startActivity(previewIntent);
+        });
+        recyclerHomeImages.setAdapter(adapter);
+        textHomeEmpty.setVisibility(images.isEmpty() ? View.VISIBLE : View.GONE);
+    }
+
+    private List<ImageItem> readImagesFromFolder(DocumentFile folder) {
+        DocumentFile[] files = folder.listFiles();
+        if (files == null || files.length == 0) {
+            return Collections.emptyList();
+        }
+        Arrays.sort(files, Comparator.comparingLong(DocumentFile::lastModified).reversed());
+        List<ImageItem> images = new ArrayList<>();
+        for (DocumentFile file : files) {
+            if (!file.isFile()) {
+                continue;
+            }
+            String type = file.getType();
+            if (type == null || !type.toLowerCase(Locale.US).startsWith("image/")) {
+                continue;
+            }
+            images.add(new ImageItem(
+                    file.getName() == null ? "Unknown" : file.getName(),
+                    file.getUri(),
+                    file.getUri().toString(),
+                    file.length(),
+                    resolveDateTaken(file)
+            ));
+        }
+        return images;
+    }
+
+    private long resolveDateTaken(DocumentFile file) {
+        try (InputStream stream = getContentResolver().openInputStream(file.getUri())) {
+            if (stream != null) {
+                ExifInterface exif = new ExifInterface(stream);
+                String dateTimeOriginal = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
+                if (dateTimeOriginal != null) {
+                    long exifTime = ExifInterfaceUtils.parseExifDate(dateTimeOriginal);
+                    if (exifTime > 0L) {
+                        return exifTime;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return file.lastModified();
     }
 
     private String getSavedFolderUri() {

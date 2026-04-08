@@ -90,9 +90,45 @@
                     android:id="@+id/textDateTaken"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp"
                     tools:text="Date taken: 08 Apr 2026, 10:01 AM" />
+
+                <TextView
+                    android:id="@+id/textCamera"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    tools:text="Camera: Google Pixel 8" />
+
+                <TextView
+                    android:id="@+id/textLens"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    tools:text="Lens: back camera" />
+
+                <TextView
+                    android:id="@+id/textLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    tools:text="Location: 12.9716, 77.5946" />
+
+                <TextView
+                    android:id="@+id/textExifExtras"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    tools:text="ISO: 125, Focal Length: 4.5mm, Exposure: 1/120" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

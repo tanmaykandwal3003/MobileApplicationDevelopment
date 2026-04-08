@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">Gallery App</string>
-    <string name="home_title">Photo Gallery App</string>
+    <string name="home_title">My Gallery</string>
     <string name="home_subtitle">Capture images and browse a selected folder.</string>
+    <string name="choose_folder">Choose Folder</string>
+    <string name="no_images_to_display">No images to display</string>
+    <string name="home_no_folder_selected">No folder selected. Tap "Choose Folder and View Images".</string>
+    <string name="home_empty_text">No images to show on home screen.</string>
     <string name="take_photo">Take Photo</string>
     <string name="open_folder">Choose Folder and View Images</string>
     <string name="splash_tagline">Capture and manage your moments</string>
@@ -25,5 +29,9 @@
     <string name="label_path">Path: %1$s</string>
     <string name="label_size">Size: %1$s</string>
     <string name="label_date_taken">Date taken: %1$s</string>
+    <string name="label_camera">Camera: %1$s</string>
+    <string name="label_lens">Lens: %1$s</string>
+    <string name="label_location">Location: %1$s</string>
+    <string name="label_exif_extras">Other metadata: %1$s</string>
     <string name="no_images_found">No images found in this folder.</string>
 </resources>

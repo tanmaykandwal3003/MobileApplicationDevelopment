@@ -4,7 +4,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -35,7 +34,6 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Imag
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         ImageItem currentItem = imageItems.get(position);
-        holder.textImageName.setText(currentItem.getName());
         holder.imageThumb.setImageURI(currentItem.getUri());
 
         holder.itemView.setOnClickListener(v -> listener.onImageClicked(currentItem));
@@ -48,12 +46,10 @@ public class ImageGridAdapter extends RecyclerView.Adapter<ImageGridAdapter.Imag
 
     static class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView imageThumb;
-        TextView textImageName;
 
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             imageThumb = itemView.findViewById(R.id.imageThumb);
-            textImageName = itemView.findViewById(R.id.textImageName);
         }
     }
 }

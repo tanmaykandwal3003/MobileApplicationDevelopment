@@ -6,7 +6,6 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,6 +20,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private var accelerometer: Sensor? = null
     private var lightSensor: Sensor? = null
     private var proximitySensor: Sensor? = null
+    private var isSensorRegistered = false
 
     private var accelX by mutableStateOf(0f)
     private var accelY by mutableStateOf(0f)
@@ -35,16 +35,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
         proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-
-        if (accelerometer == null) {
-            Log.w(TAG, "Sensor not available: Accelerometer")
-        }
-        if (lightSensor == null) {
-            Log.w(TAG, "Sensor not available: Light")
-        }
-        if (proximitySensor == null) {
-            Log.w(TAG, "Sensor not available: Proximity")
-        }
 
         enableEdgeToEdge()
         setContent {
@@ -63,6 +53,45 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
+        registerSensorsIfNeeded()
+    }
+
+    override fun onPause() {
+        unregisterSensorsIfNeeded()
+        super.onPause()
+    }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        when (event.sensor.type) {
+            Sensor.TYPE_ACCELEROMETER -> {
+                updateAccelValues(
+                    x = event.values[0],
+                    y = event.values[1],
+                    z = event.values[2]
+                )
+            }
+
+            Sensor.TYPE_LIGHT -> {
+                val newLightValue = event.values[0]
+                if (lightValue != newLightValue) {
+                    lightValue = newLightValue
+                }
+            }
+
+            Sensor.TYPE_PROXIMITY -> {
+                val newProximityValue = event.values[0]
+                if (proximityValue != newProximityValue) {
+                    proximityValue = newProximityValue
+                }
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit
+
+    private fun registerSensorsIfNeeded() {
+        if (isSensorRegistered) return
+
         accelerometer?.also {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
@@ -72,39 +101,19 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         proximitySensor?.also {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
+
+        isSensorRegistered = accelerometer != null || lightSensor != null || proximitySensor != null
     }
 
-    override fun onPause() {
-        super.onPause()
+    private fun unregisterSensorsIfNeeded() {
+        if (!isSensorRegistered) return
         sensorManager.unregisterListener(this)
+        isSensorRegistered = false
     }
 
-    override fun onSensorChanged(event: SensorEvent) {
-        when (event.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> {
-                accelX = event.values[0]
-                accelY = event.values[1]
-                accelZ = event.values[2]
-                Log.d(TAG, "Accel: X=$accelX Y=$accelY Z=$accelZ")
-            }
-
-            Sensor.TYPE_LIGHT -> {
-                lightValue = event.values[0]
-                Log.d(TAG, "Light: $lightValue")
-            }
-
-            Sensor.TYPE_PROXIMITY -> {
-                proximityValue = event.values[0]
-                Log.d(TAG, "Proximity: $proximityValue")
-            }
-        }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        Log.d(TAG, "Accuracy changed for ${sensor.name}: $accuracy")
-    }
-
-    companion object {
-        private const val TAG = "SENSOR"
+    private fun updateAccelValues(x: Float, y: Float, z: Float) {
+        if (accelX != x) accelX = x
+        if (accelY != y) accelY = y
+        if (accelZ != z) accelZ = z
     }
 }
